@@ -237,14 +237,30 @@ So a `.frx` is not independent evidence: when the executable is at hand it holds
 nothing the blob does not already hold, and it is useful as a cross-check of the
 blob cutter (53 files are byte-exact copies of a region).
 
-Reading `.frx` **without** an executable is not implemented. These files start
-inside a property/value region, so the shape used to find control records —
-`namelen:u16`, ASCII name, `0x00`, class byte — matches **0** records in them.
-What sits there instead is a UTF-16 property entry (`0C 00` then
-`L\0a\0b\0e\0l\01\0`), measured at the same offset in a `.frx` and in the
-executable's own region. Relaxing the ASCII rule to accept those names yields
-records with no geometry, so the grammar would have to be calibrated before a
-reader is shipped.
+Reading `.frx` **without** an executable is calibrated for one record type
+only: the **icon record**. These files start inside a property/value region,
+so the shape used to find control records — `namelen:u16`, ASCII name,
+`0x00`, class byte — matches **0** records in them. What sits there instead is
+a UTF-16 property entry (`0C 00` then `L\0a\0b\0e\0l\01\0`), measured at the
+same offset in a `.frx` and in the executable's own region. Relaxing the ASCII
+rule to accept those names yields records with no geometry, so control records
+are still not parsed.
+
+The leading icon sits outside that grammar and *is* parsed, without an
+executable. For forms that carry an icon the file opens with a short
+property-blob header (length varies; measured: the ICONDIR signature sits at
+even offsets up to 32 bytes in) followed by a complete ICON resource —
+`<header> <ICONDIR> <ICONDIRENTRY ×N> <image data>`. `scripts/frx_icon.py`
+extracts it: entry type 1 or 2, count 1..20, and every `imageOffset` is
+relative to the ICONDIR start — the same layout a standalone `.ico` carries —
+so the slice ending at `max(offset + size)` is a valid `.ico` on its own and
+offsets are not rewritten. Measured on the reference corpus: **347 of 358**
+`.frx` files yield an icon, **10 distinct images** among them; of the **347 of
+802** `.frm` files that declare `Icon = "<name>.frx":<offset>`, **346** match
+extraction (one module `.frx` is declared but carries no ICON bytes; one form
+carries icon bytes with no declaration — VB6 does not serialise a property
+equal to its default). The script prints both sets by name. A `.frm` with no
+`Icon` line is absence, not proof of no icon.
 
 **`SSTab` captions are a blob result, not a `.frm` result.** Every `.frm` in the
 corpus that contains an `SSTab` has no `TabCaption` line in its text (14 of 14 —
@@ -292,8 +308,9 @@ reference install, 24 more inside the executable itself).
   class-`0x0D` records directly, which found 801 blobs whose names match the `.frm`
   set — so the table is unnecessary, and an undocumented guess is not shipped.
 * **Method entry addresses** — see §4.
-* **`.frx` without an executable** — see §5: the record shape those files start in
-  was never calibrated, so it is not parsed.
+* **Control records in a `.frx` read without an executable** — see §5: the
+  property/control grammar those files start in is still uncalibrated. The
+  leading icon record is the one exception and ships as `scripts/frx_icon.py`.
 * **Expression-level code.** Not a binary structure: reconstructing VB semantics
   (`Variant`, late binding, `On Error`) from native code is research, not a parse.
 * **`.dsr` layout.** `.dsr` files carry no SQL and no caption text; the layout lives

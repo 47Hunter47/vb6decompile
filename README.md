@@ -30,6 +30,7 @@ host, no database name, no account, no credential, no absolute install path.
 | Form design | `vb6d frm <dir>` | controls, geometry, `Visible`, control arrays, `SSTab` pages from `.frm` text |
 | Form geometry from binary | `vb6d blob <exe> --validate` | geometry for forms that have no `.frm`, calibrated against `.frm` ground truth |
 | DataReport layout | `vb6d datareport <dll or dir>` | report sections, controls, captions recovered from the runtime blobs |
+| Form icons from `.frx` | `scripts/frx_icon.py <frx dir> <out> [--validate <frm dir>]` | standalone `.ico` per form, extracted from the leading ICON record without the executable; coverage cross-checked against `.frm` Icon references |
 | Credential gate | `vb6d mask <dir>` | connection strings redacted, then an audit counting what is still live |
 
 ## You fill these in
@@ -149,7 +150,8 @@ invariants and lower bounds, not these totals.
 
 ```
 vb6decompile/     the library (one module per stage, stdlib only except pefile/capstone)
-scripts/          standalone helpers (semi_laa.py: set the LAA bit on a copy)
+scripts/          standalone helpers (semi_laa.py: set the LAA bit on a copy;
+                  frx_icon.py: extract the leading ICON record of a .frx)
 tests/            unit tests + target tests that skip unless VB6D_TARGET is set
 docs/             formats.md (structures), pitfalls.md (traps), tool-matrix.md,
                   pipeline.md (stages and what each may claim), RULES.md
