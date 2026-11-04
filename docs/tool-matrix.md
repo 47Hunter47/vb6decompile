@@ -14,6 +14,7 @@ the reason it does not apply.
 | **Ghidra / Rizin / IDA** | no | yes (generic) | ASCII only | no | no | no VB6 structure; no `BSTR`, no form blobs |
 | **Craft Anything 0.2.0** | no | 6,875 of 34,159 (20 %) | **59**, zero SQL | no | no | generic engine, correct for C/Rust/Go, blind to VB6 layout |
 | **this toolkit** | 801 blobs + 790 `.frm` | 34,159 entries (listings) / 34,415 declared | 167,564 from the image | 801 | 437 designs | narrow, and it says where it stops |
+| **VB Decompiler 26.6 Lite** (DotFix, free tier) | visual forms yes | **no** — Lite excludes code decompilation by design | disassembly only | no | no | engine accepts the 111 MB file; produced nothing the OSS toolchain had not already produced (details below) |
 
 ## Craft Anything 0.2.0 — full measurement
 
@@ -94,3 +95,42 @@ second opinion on one function*. None of them knows that:
 
 Using one on a VB6 target yields a function list with no names, no strings and no
 structure — which is exactly what the Craft Anything run above measured.
+
+## VB Decompiler 26.6 Lite and VBScanner (DotFix / recovery-product family)
+
+Measured locally in one headless session on the reference binary. Nothing here is a
+vendor claim; vendor-scope statements quote the vendor's own Lite-scope page.
+
+* Installer `vb_decompiler_lite.zip` (17.4 MB): Authenticode status `Valid`, signer
+  `DotFix Software` (individual entrepreneur, Tula, RU). Silent install works.
+* The engine **accepts the 111 MB file**: the app reaches ~316 MB private memory and
+  populates its Project / Designer / Disassembler / HEX tabs from a command-line
+  file argument — the transport failure above is a service-size limit, not a
+  format limit.
+* Lite's scope is disassembly plus form visuals by design ("code decompilation is
+  not included" — vendor scope page), which is exactly the layer this toolkit and
+  Semi already export. Re-running Lite produced **no new facts**.
+* The app phones home to the vendor host over TLS at start-up. When that route is
+  unavailable the start-up modal never resolves and the process exits — a headless
+  run in a restricted network must expect this (measured twice).
+* Registration facts, all measured on the same (genuine, signed) executable, which
+  is also the binary a purchased key unlocks — there is no separate Pro download:
+  the file is **packed** (`.text` virtual 8,648,472 bytes, raw 3,128,832, entropy
+  7.94); a full-file scan finds **no** plaintext `registration`, `license` or
+  `serial` string; it ships its own `libeay32/ssleay32` (in-process HTTPS); an
+  unregistered install leaves **no** registry key and **no** license file anywhere.
+  A keygen route must unpack ~8 MB of code before it can even find the check — and
+  the vendor sells name-bound 1-PC activation, so the check may be server-side.
+  No community keygen or crack release was found for this product line.
+* UI Automation is unusable against this app from a console session:
+  `ControlFromHandle` on the main window hangs (measured in both a service session
+  and the interactive session), and `GetMenuItemInfoW` fails from a 64-bit caller
+  against the 32-bit target. Reading its registration dialog needs a real
+  interactive session with a human.
+* `VBScanner` (the recovery product's free companion scanner; VB6, 65,536-byte
+  executable) was driven to completion: folder set via `WM_SETTEXT`, buttons and
+  checkboxes via centre-point mouse messages, scan produced a 10-row list — but the
+  rows' text is unreadable from outside (`LVM_GETITEMTEXTW` returns 0 of the
+  requested characters; UI A exposes the list as an empty pane): VB6 `ListView`
+  is custom-drawn here. Its classification role duplicates `vb6d pe` on the same
+  folder, so its verdict adds nothing; recorded as a measured-null row, not skipped.

@@ -212,3 +212,45 @@ against ground truth and prints coverage with its denominator.
 **35. Absence is not proof.**
 "0 strings" meant "the scanner looked in the wrong section". "Function not found"
 meant "recursive descent stopped". Output text in this toolkit says which one it is.
+
+## Driving vendor GUI tools headlessly
+
+Vendor RE tools are usually GUI-only. These are the walls hit while driving two of
+them (a Delphi/VCL decompiler and a VB6 scanner) from a console session; each one
+cost a blind run before it was understood. `scripts/win32_gui_probe.py` encodes the
+workarounds.
+
+**36. Window-class search breaks on Delphi/VCL tools.** The class name is random per
+process; search by title (`list --title ...`), never by class. A service-session run
+also leaves every window `IsWindowVisible = False` — visible-in-name only; synthesis
+targeted at station 0 goes nowhere, run the driver in the interactive session.
+
+**37. VB6 OCX controls swallow `BM_CLICK`.** Buttons and checkboxes toggle on a
+centre-point `WM_LBUTTONDOWN` + `WM_LBUTTONUP` pair (`SendMessage`), not on
+`BM_CLICK`. And their `BM_GETCHECK` reads 0 whatever the control shows — checkbox
+state is not externally readable; verify a tick **by its effect** (the list fills,
+the scan starts), never by state.
+
+**38. VB6 ListView rows are custom-drawn.** `LVM_GETITEMCOUNT` works,
+`LVM_GETITEMTEXTW` returns 0 of the requested characters, and UI Automation reports
+an empty pane. Treat row text as unreadable; count rows only, and pick tools whose
+output has a machine-readable path.
+
+**39. UI Automation hangs where lists are huge.** Connecting to a window whose panes
+hold tens of thousands of virtualized items can hang the walk (measured: never
+returned inside 3 minutes, twice). Raw messages with the target's own struct layout
+are the reliable channel. For cross-process item text: `VirtualAllocEx` takes a
+**handle** (mask needs `PROCESS_VM_OPERATION`) not a pid; `cchTextMax` counts
+**WCHARs**, reserve twice the bytes; build the `LVITEM` with the **target's**
+pointer size (a 64-bit driver against a 32-bit target uses 4-byte pointers, and
+`pszText` must be 8-aligned there).
+
+**40. Menu APIs are a cross-bitness trap.** `GetMenuItemInfoW` fails from a 64-bit
+caller against a 32-bit target (returns false; the struct is the target's). Menus
+are UIA's job (pitfall 39 makes that hard for this app class) — plan GUI dialog
+reading as an interactive-session task, not a headless one.
+
+**41. Enumeration callbacks must swallow their own exceptions.** One raise inside
+one `EnumWindows`/`EnumChildWindows` callback aborts the whole sweep and the driver
+concludes "no windows exist" — the classic blind run. And `GetWindowThreadProcessId`
+lookup on `kernel32` fails in some ctypes setups; fall back, don't crash.
