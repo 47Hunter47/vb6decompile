@@ -128,7 +128,7 @@ def audit(path: str, extensions: tuple[str, ...] = (".csv", ".md", ".json", ".tx
     ]
     for f in targets:
         files += 1
-        with open(f, encoding="utf-8", errors="replace") as fh:
+        with open(f, encoding=_codec_for(f), errors="replace") as fh:
             for line in fh:
                 lines += 1
                 for pattern, key in live:
@@ -137,14 +137,33 @@ def audit(path: str, extensions: tuple[str, ...] = (".csv", ".md", ".json", ".tx
     return AuditResult(files=files, lines=lines, findings=findings)
 
 
+def _codec_for(path: str) -> str:
+    """BOM-aware codec pick. A UTF-16 artefact (``command > out.txt`` in
+    PowerShell) read as UTF-8 with ``replace`` turns ``uid=`` into ``u?i?d?``:
+    every pattern misses it and the gate passes a live leak.
+    shortcut: detection is BOM-only; a BOM-less UTF-16 file is still blind to
+    the gate — upgrade if a corpus proves that case is real.
+    """
+    with open(path, "rb") as fh:
+        head = fh.read(2)
+    if head in (b"\xff\xfe", b"\xfe\xff"):
+        return "utf-16"      # the codec strips the BOM on read and rewrites it on write
+    if head == b"\xef\xbb":  # EF BB BF prefix
+        return "utf-8-sig"   # strips on read, rewrites on write
+    return "utf-8"
+
+
 def mask_file(path: str, dry_run: bool = False) -> int:
     """Mask one file in place. Returns the number of changed lines.
 
     The line count is compared before and after: a whitespace class that crosses
     newlines would silently join lines, and this function refuses to write in that
-    case.
+    case. Decoding is BOM-aware, and undecodable bytes round-trip via
+    surrogateescape: a cp1254 artefact leaves every byte outside the masked
+    values unchanged.
     """
-    with open(path, encoding="utf-8", errors="replace", newline="") as fh:
+    codec = _codec_for(path)
+    with open(path, encoding=codec, errors="surrogateescape", newline="") as fh:
         original = fh.read()
     lines = original.splitlines(keepends=True)
     changed = [mask_text(line) for line in lines]
@@ -154,7 +173,7 @@ def mask_file(path: str, dry_run: bool = False) -> int:
             f"{path}: masking changed the line count ({len(lines)} -> {len(changed)}); not writing"
         )
     if not dry_run and n_changed:
-        with open(path, "w", encoding="utf-8", newline="") as fh:
+        with open(path, "w", encoding=codec, errors="surrogateescape", newline="") as fh:
             fh.write("".join(changed))
     return n_changed
 
@@ -167,5 +186,7 @@ def mask_tree(path: str, extensions: tuple[str, ...] | None = None, dry_run: boo
         for n in names:
             if n.lower().endswith(exts):
                 p = os.path.join(root, n)
-                out[p] = mask_file(p, dry_run=dry_run)
+                # A symlink would let 'mask my artefacts dir' rewrite a file that
+                # lives outside it; the audit may still read through it (stricter).
+                out[p] = 0 if os.path.islink(p) else mask_file(p, dry_run=dry_run)
     return out

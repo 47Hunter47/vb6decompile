@@ -160,6 +160,39 @@ def test_unc_and_ip_are_masked():
     assert "fileserv" not in out and "198.18.4.7" not in out
 
 
+def test_utf16_artifact_is_masked_and_the_bom_survives(tmp_path):
+    # 'command > out.txt' in PowerShell writes UTF-16. Read as UTF-8 with
+    # replace it is 'u?i?d?' and every pattern misses: the gate passed live
+    # leaks before this test existed.
+    body = "uid=sa;pwd=hunter2\nNotlar: \u011f\u015f\u0131\u00e7\u00fc listesi\n"
+    p = tmp_path / "out.txt"
+    p.write_bytes(b"\xff\xfe" + body.encode("utf-16-le"))
+    assert mask.mask_file(str(p)) == 1
+    raw = p.read_bytes()
+    assert raw.startswith(b"\xff\xfe")  # still valid UTF-16 after the rewrite
+    text = raw.decode("utf-16")
+    assert "hunter2" not in text and "[REDACTED]" in text
+    assert "\u011f\u015f\u0131\u00e7\u00fc" in text  # non-ASCII text survives the round trip
+
+
+def test_audit_finds_a_utf16_leak(tmp_path):
+    (tmp_path / "leak.txt").write_bytes(b"\xff\xfe" + "pwd=hunter2\n".encode("utf-16-le"))
+    res = mask.audit(str(tmp_path))
+    assert not res.clean and res.findings["password"] >= 1
+
+
+def test_non_utf8_bytes_survive_masking_byte_for_byte(tmp_path):
+    body = "uid=sa;pwd=hunter2\nNotlar: \u011f\u015f\u0131\u00e7\u00fc listesi\n"
+    original = body.encode("cp1254")
+    p = tmp_path / "old.txt"
+    p.write_bytes(original)
+    mask.mask_file(str(p))
+    # Everything outside the masked values must be byte-identical: the old
+    # decode-with-replace pass turned each Turkish byte into U+FFFD on write.
+    expected = original.replace(b"uid=sa", b"uid=[REDACTED]").replace(b"pwd=hunter2", b"pwd=[REDACTED]")
+    assert p.read_bytes() == expected
+
+
 def test_mask_does_not_cross_lines(tmp_path):
     # A whitespace class that crosses newlines would eat the next line's first word.
     p = tmp_path / "a.csv"

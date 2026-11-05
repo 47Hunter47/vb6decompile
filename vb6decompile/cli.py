@@ -195,6 +195,9 @@ def cmd_datareport(args) -> int:
 def cmd_mask(args) -> int:
     from . import mask
 
+    # A gate aimed at a typo'd or missing path found nothing because it looked at
+    # nothing; exiting 0 there would make every CI run of this gate meaningless.
+    os.stat(args.path)
     result = mask.mask_tree(args.path, dry_run=args.dry_run)
     changed = {k: v for k, v in result.items() if v}
     print(f"# {len(result)} files scanned, {len(changed)} changed, {sum(changed.values())} lines")

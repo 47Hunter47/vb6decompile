@@ -118,3 +118,10 @@ def test_vb6d_debug_keeps_the_traceback(tmp_path, monkeypatch):
     monkeypatch.setenv("VB6D_DEBUG", "1")
     with pytest.raises(Exception):
         cli.main(["procs", str(junk)])
+
+
+def test_mask_on_a_missing_path_does_not_pass_vacuously(tmp_path, capsys):
+    code = cli.main(["mask", str(tmp_path / "gone")])
+    _out, err = capsys.readouterr()
+    assert code == 2
+    assert "error:" in err
