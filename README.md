@@ -124,8 +124,8 @@ Exit codes: 0 = completed, whatever it found; 1 = mask audit not clean; 2 =
 unusable input (one line on stderr, no traceback — set `VB6D_DEBUG=1` for the
 traceback when reporting a bug).
 
-What one native VB6 build used while developing produced (111 MB, 802 forms), so
-you can tell at a glance whether your own numbers look sane:
+What the reference build (111 MB, 802 forms) produced while this toolkit was
+developed, so you can tell at a glance whether your own numbers look sane:
 
 | Stage | Result |
 |---|---|
@@ -188,7 +188,7 @@ Things that cost days to learn:
 ## Honest limits
 
 * Procedure **names** are not recoverable from a native build; only addresses and
-  the names a decompiler guessed. Treat every name as a hint.
+  the names a decompiler guessed.
 * Bodies recovered by a third-party decompiler are pseudo-source. Expression-level
   fidelity does not exist in any free tool measured here.
 * SQL that is built at run time (concatenated from variables) cannot be closed
