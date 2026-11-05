@@ -31,7 +31,7 @@ host, no database name, no account, no credential, no absolute install path.
 | Form geometry from binary | `vb6d blob <exe> --validate` | geometry for forms that have no `.frm`, calibrated against `.frm` ground truth |
 | DataReport layout | `vb6d datareport <dll or dir>` | report sections, controls, captions recovered from the runtime blobs |
 | Form icons from `.frx` | `scripts/frx_icon.py <frx dir> <out> [--validate <frm dir>]` | standalone `.ico` per form, extracted from the leading ICON record without the executable; coverage cross-checked against `.frm` Icon references |
-| Credential gate | `vb6d mask <dir>` | connection strings redacted, then an audit counting what is still live |
+| Credential gate | `vb6d mask <dir>` | files rewritten in place: connection strings redacted, then an audit counting what is still live |
 
 ## You fill these in
 
@@ -41,7 +41,7 @@ variables and skip when they are unset.
 | Variable | What you put in it |
 |---|---|
 | `VB6D_TARGET` | your VB6 executable, e.g. `D:/App/App.exe` or `/opt/app/App.exe` |
-| `VB6D_LISTINGS` | a directory of decompiler output (listing text, `.frm`, `.frx`) |
+| `VB6D_LISTINGS` | a directory of decompiler output: listing text carrying `'VA` address comments (the shape `docs/formats.md` §4 reads), plus `.frm` and `.frx` files |
 | `VB6D_FRM_DIR` | a directory holding `.frm` design text — ground truth for `--validate` |
 | `VB6D_REPORT_DIR` | the install directory holding the report DLLs |
 | `VB6D_SCRUB_DENYLIST` | optional: a private file, one name per line — names you refuse to publish. The hygiene test fails if any of them appears in this repository. |
@@ -120,6 +120,10 @@ vb6d mask          .                             # mask credentials in your arte
 vb6d mask          . --dry-run                   # report only; exit 1 if anything is live
 ```
 
+Exit codes: 0 = completed, whatever it found; 1 = mask audit not clean; 2 =
+unusable input (one line on stderr, no traceback — set `VB6D_DEBUG=1` for the
+traceback when reporting a bug).
+
 What one native VB6 build used while developing produced (111 MB, 802 forms), so
 you can tell at a glance whether your own numbers look sane:
 
@@ -191,6 +195,15 @@ Things that cost days to learn:
   statically. `vb6d stitch` reports those gaps as gaps instead of guessing.
 * Geometry recovered from the binary is calibrated, not exact for forms that
   changed after the `.frm` in hand was written; `--validate` says so per form.
+* The toolkit is calibrated on native-compiled builds; a P-Code build is outside
+  that calibration and was not tested here. If `vb6d procs --validate` reports no
+  real prologues in your build, suspect a P-Code compile before suspecting the
+  toolkit.
+* The parsers know the grammar of the reference build. Another program ships
+  different controls, property sets and report sections, so expect more `unknown`
+  lines than the reference numbers show. An un-calibrated construct is reported as
+  unknown, never guessed (`docs/formats.md` §7), and no stage drops a file
+  silently: failures are counted and named.
 
 ## Layout
 

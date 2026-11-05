@@ -12,6 +12,9 @@ license = { text = "MIT" }
 authors = [{ name = "vb6decompile authors" }]
 keywords = ["vb6", "reverse-engineering", "decompiler", "pe", "sql-server"]
 
+[project.urls]
+Homepage = "https://github.com/47Hunter47/vb6decompile"
+
 [project.optional-dependencies]
 pe = ["pefile>=2023.2.7"]
 asm = ["capstone>=5"]

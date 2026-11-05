@@ -2,7 +2,8 @@
 
 Every subcommand prints what it measured and what it could not do. Exit code is 0
 when the run completed, whatever it found — a missing thing is a result, not a
-failure.
+failure. An unusable input (not a PE, no ``VB5!`` header, missing file) exits 2
+with one line on stderr; ``VB6D_DEBUG=1`` keeps the traceback for bug reports.
 """
 
 from __future__ import annotations
@@ -265,7 +266,23 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
-    return args.func(args)
+    # A stranger pipes output to a file on a cp1252 console; literals recovered
+    # from UTF-16 are not encodable there. Cosmetic only: never changes exit codes.
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8", errors="backslashreplace")
+        except (AttributeError, OSError):
+            pass
+    try:
+        return args.func(args)
+    except Exception as exc:
+        # Named errors (VBError, PEError, FrmError) already carry their path and
+        # cause; one line keeps a stranger's first crash readable, not a wall of
+        # traceback. VB6D_DEBUG restores the full traceback for bug reports.
+        if os.environ.get("VB6D_DEBUG"):
+            raise
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
 
 
 if __name__ == "__main__":

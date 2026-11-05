@@ -1,9 +1,32 @@
 # AGENTS.md — rule book for this repository
 
 `docs/RULES.md` holds the technical rules (what may be claimed, measured structures,
-tool limits). This file is the rule book for anyone — human or agent — editing this
-repository. It is a set of rules, not a log: project state, open items and test
-results live elsewhere.
+tool limits). This file is the rule book for anyone — human or agent — editing or
+running this repository. It is a set of rules, not a log: project state, open items
+and test results live elsewhere.
+
+## Running the tool (the contract an agent needs)
+
+* Shape: `vb6d <stage> <path> [flags]`; every stage answers `vb6d <stage> --help`.
+* stdout carries record lines only when you strip comments: footnotes, summaries
+  and error messages are `#`-prefixed — on stderr for every stage except `mask`,
+  and `procs` writes one `#` count line to stdout. Discard `#` lines when
+  parsing. `--json` exists for `pe`, `procs`, `stitch`, `frm`, `blob` and
+  `datareport`; `literals` is CSV-only by design because its row count is six
+  figures and JSON indentation only bloats it.
+* Exit codes: `0` = the run completed whatever it found (a missing thing is a
+  result — report it, do not retry); `1` = mask audit found live values (the
+  artefacts are not publishable); `2` = unusable input or a wrong invocation
+  (one line on stderr, no traceback; `VB6D_DEBUG=1` re-raises for bug reports).
+* Both streams are reconfigured to UTF-8; a character the console cannot encode
+  becomes a visible escape, never a silent drop.
+* Trust semantics before repeating a number: unknown constructs are reported as
+  unknown, never guessed (`docs/formats.md` §7); closed SQL is a lower bound;
+  decompiler-supplied names are hints. `docs/pipeline.md` states what each stage
+  may claim and what it must not.
+* Before publishing anything a run produced: `vb6d mask <out_dir> --dry-run`;
+  non-zero means sanitise first.
+* Stage order, tips and expected failure shapes: README, "Using it well".
 
 ## Rules
 

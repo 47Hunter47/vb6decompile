@@ -253,7 +253,14 @@ def read(path: str) -> VBProject:
     """Decode the VB6 header chain of one executable or DLL."""
     with open(path, "rb") as fh:
         data = fh.read()
-    sections, image_base = _sections(data)
+    if data[:2] != b"MZ":
+        raise VBError(f"{os.path.basename(path)}: not an MZ image (pass design text to 'vb6d frm', compiled binaries here)")
+    try:
+        sections, image_base = _sections(data)
+    except struct.error as exc:
+        # A text file or a stub with junk at 0x3C computes offsets past the buffer;
+        # say what the input is, not what unpack_from wanted (same trio as blob.py).
+        raise VBError(f"{os.path.basename(path)}: PE header did not parse (truncated, or not a compiled binary)") from exc
     hdr = _vb_header(data)
     if hdr is None:
         raise VBError(f"{os.path.basename(path)}: no 'VB5!' header (not a VB5/VB6 build)")

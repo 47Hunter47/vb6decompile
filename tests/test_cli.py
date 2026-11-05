@@ -90,3 +90,31 @@ def test_mask_dry_run_does_not_write(tmp_path):
     leak.write_text("uid=sa;pwd=hunter2\n", encoding="utf-8")
     cli.main(["mask", str(tmp_path), "--dry-run"])
     assert "hunter2" in leak.read_text(encoding="utf-8")
+
+
+# --------------------------------------------------------------------------- error boundary
+# A stranger's first run hits a bad input (packed exe, wrong file, typo'd path).
+# That must cost one readable line and exit 2, not a Python traceback.
+def test_unusable_exe_is_one_line_on_stderr_not_a_traceback(tmp_path, capsys):
+    junk = tmp_path / "junk.exe"
+    junk.write_bytes(b"MZ\x90\x00garbage-not-a-real-image")
+    code = cli.main(["procs", str(junk)])
+    _out, err = capsys.readouterr()
+    assert code == 2
+    assert "error:" in err
+    assert "Traceback" not in err
+
+
+def test_missing_file_is_an_error_not_a_traceback(capsys):
+    code = cli.main(["procs", os.path.join(FIXTURES, "nope.exe")])
+    _out, err = capsys.readouterr()
+    assert code == 2
+    assert "error:" in err and "Traceback" not in err
+
+
+def test_vb6d_debug_keeps_the_traceback(tmp_path, monkeypatch):
+    junk = tmp_path / "junk.exe"
+    junk.write_bytes(b"MZ\x90\x00garbage-not-a-real-image")
+    monkeypatch.setenv("VB6D_DEBUG", "1")
+    with pytest.raises(Exception):
+        cli.main(["procs", str(junk)])
