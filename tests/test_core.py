@@ -156,7 +156,7 @@ def test_masking_is_idempotent():
 
 
 def test_unc_and_ip_are_masked():
-    out = mask.mask_text(r"\\fileserv\muh\appdata.mdb on 198.18.4.7")
+    out = mask.mask_text(r"\\fileserv\data\appdata.mdb on 198.18.4.7")
     assert "fileserv" not in out and "198.18.4.7" not in out
 
 

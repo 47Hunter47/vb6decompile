@@ -14,7 +14,7 @@ What is masked
 * ``password=`` / ``pwd=`` values      -> ``[REDACTED]``
 * ``user id=`` / ``uid=`` values       -> ``[REDACTED]``
 * ``server=`` / ``data source=`` hosts -> ``[HOST]``
-* ``\\host\share`` UNC prefixes        -> ``\\\\[HOST]\\``
+* ``\\\\host\\share`` UNC prefixes        -> ``\\\\[HOST]\\``
 * IPv4 literals                        -> ``[IP]``
 
 What is *not* masked, on purpose: database names. They are evidence about the

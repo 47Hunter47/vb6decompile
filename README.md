@@ -109,6 +109,7 @@ python -m pip install -e ".[pe,asm]"
 vb6d pe            <install dir>                 # what is this install made of
 vb6d procs         <app.exe>                     # object table: objects, method counts
 vb6d procs         <app.exe> --validate          # are the entry points real prologues
+vb6d procs         <app.exe> --names <listing dir> # attach decompiler names/addresses
 vb6d literals      <app.exe>                     # BSTR/UTF-16 literals with addresses
 vb6d literals      <listing dir> --sql-only      # literals a decompiler listing produced
 vb6d stitch        <listing dir>                 # join fragments, classify what stayed open
@@ -135,6 +136,51 @@ you can tell at a glance whether your own numbers look sane:
 A different program legitimately gives different numbers. The tests assert
 invariants and lower bounds, not these totals.
 
+## Using it well
+
+Run the stages in pipeline order; each one tells you whether the next is worth
+running. `docs/pipeline.md` states what every stage may claim and what it must
+never be used to claim.
+
+1. `vb6d pe <install dir>` first. It costs seconds and says what you have: which
+   binaries carry VB6 code, which are redistributables, where the report DLLs are.
+2. `vb6d procs`, then `--validate` before trusting anything downstream. Method
+   counts are cheap; entry points proven by their runtime prologue are evidence.
+   Addresses and names only exist once a decompiler listing is merged in with
+   `--names`.
+3. `vb6d literals` on the executable gives UTF-16 text with addresses; on a
+   listing it gives procedure ownership, and that ownership is what makes
+   `vb6d stitch` possible at all.
+4. `vb6d stitch` reports what stayed open as open. The gap buckets are not noise:
+   `OPEN_QUOTE` means a run-time value is missing, and no smarter regex closes
+   it.
+5. `vb6d frm` reads the design text; `vb6d blob --validate` calibrates the binary
+   reader against it. Trust blob geometry for forms that have no `.frm` exactly
+   as far as that calibration holds.
+6. Count embedded reports when you run `vb6d datareport`. A scan limited to
+   `rpt*.dll` misses 24 of the 437 layouts the reference build carries inside its
+   own executable.
+7. `vb6d mask . --dry-run` before sharing anything you produced. A non-zero exit
+   means the artefacts are not publishable, not that you should retry quietly.
+
+Things that cost days to learn:
+
+* Procedure names do not exist in a native build. A decompiler's names are
+  guesses and `.frm` event names repeat; treat every name as a hint and every
+  prologue-verified address as the better fact.
+* If a string scanner reports zero SQL on a VB6 binary, ask whether it reads
+  UTF-16LE at all. One engine reported 59 strings and zero SQL on a build that
+  holds 167,564 `BSTR` literals, 6,171 of them with a SQL verb.
+* Compare shapes, not totals: literals per procedure, closed versus open
+  statements, controls per form. Totals scale with the program; the tests assert
+  invariants for the same reason.
+* When a free decompiler refuses a large executable, run `scripts/semi_laa.py`
+  on a copy. The Large Address Aware bit is a property of the file, not of the
+  tool's competence.
+* Three-state flags such as `Visible` and `Locked` have defaults that look like
+  explicit values, and `docs/pitfalls.md` lists that class of trap with the
+  measurement that proved each one.
+
 ## Honest limits
 
 * Procedure **names** are not recoverable from a native build; only addresses and
@@ -151,7 +197,9 @@ invariants and lower bounds, not these totals.
 ```
 vb6decompile/     the library (one module per stage, stdlib only except pefile/capstone)
 scripts/          standalone helpers (semi_laa.py: set the LAA bit on a copy;
-                  frx_icon.py: extract the leading ICON record of a .frx)
+                  frx_icon.py: extract the leading ICON record of a .frx;
+                  win32_gui_probe.py: drive vendor GUI tools headlessly when the
+                  measurement only exists in a window)
 tests/            unit tests + target tests that skip unless VB6D_TARGET is set
 docs/             formats.md (structures), pitfalls.md (traps), tool-matrix.md,
                   pipeline.md (stages and what each may claim), RULES.md
