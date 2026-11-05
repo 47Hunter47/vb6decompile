@@ -24,7 +24,7 @@ project that uses these tools.
 4. **Absence is not proof.** A missing string, function or table means the tool
    did not find it. Write it that way, in code comments and in output text.
 5. **Never store secrets.** Connection strings, `uid=`/`pwd=` values, server names
-   and UNC paths are masked by `vb6decompile/mask.py` before any artefact is
+   and UNC paths are masked by `vb6decompiler/mask.py` before any artefact is
    written. Database *names* are not secrets.
 6. **Do not put target-specific paths in code.** Every entry point takes a path.
    Defaults are `None`; examples live in `docs/`.

@@ -26,7 +26,7 @@ So this module reads two sources and keeps them apart:
 3. :func:`merge` — union keyed by (procedure VA, text address), never by text.
 
 Nothing here decides what a literal *means*. SQL detection is a flag, and a flag is
-not a table list: see :mod:`vb6decompile.sqlstitch` for what can and cannot be
+not a table list: see :mod:`vb6decompiler.sqlstitch` for what can and cannot be
 closed statically.
 """
 

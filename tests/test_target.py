@@ -16,7 +16,7 @@ import re
 
 import pytest
 
-from vb6decompile import literals, pe, procs
+from vb6decompiler import literals, pe, procs
 
 TARGET = os.environ.get("VB6D_TARGET")
 LISTINGS = os.environ.get("VB6D_LISTINGS")
@@ -69,7 +69,7 @@ def test_listing_scan_recovers_procedure_literals():
 
 @needs_listings
 def test_stitching_closes_some_statements_and_reports_the_rest():
-    from vb6decompile import sqlstitch
+    from vb6decompiler import sqlstitch
 
     lits = literals.scan_listings(LISTINGS)
     cands = sqlstitch.stitch_all(lits)
@@ -90,7 +90,7 @@ def test_frx_files_are_a_slice_of_the_executables_blob_region():
     case, the ``.frx`` really does hold independent data and §5 has to be
     re-measured rather than patched.
     """
-    from vb6decompile import blob
+    from vb6decompiler import blob
 
     regions = {b.name.lower(): b.data for b in blob.iter_form_blobs(TARGET)}
     compared = long_prefix = 0
@@ -120,7 +120,7 @@ def test_frx_files_are_a_slice_of_the_executables_blob_region():
 @needs_listings
 def test_sstab_page_titles_come_from_the_blob_not_from_frm_text():
     """Decompiled ``.frm`` text drops ``TabCaption``; the blob keeps the titles."""
-    from vb6decompile import blob
+    from vb6decompiler import blob
 
     titles = {}
     for form in blob.extract_forms(TARGET):

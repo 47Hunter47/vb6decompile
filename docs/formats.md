@@ -52,7 +52,7 @@ same four symbols every COM in-proc server does: `DllRegisterServer`,
   They are a minority: 122,280 ASCII runs against 45,284 UTF-16 runs in one build,
   but the UTF-16 set is where the SQL is.
 
-`vb6decompile/literals.py` validates a candidate by checking that the 4 bytes before
+`vb6decompiler/literals.py` validates a candidate by checking that the 4 bytes before
 it equal `2 × len(text)`. That check is the difference between a literal and a
 coincidence.
 

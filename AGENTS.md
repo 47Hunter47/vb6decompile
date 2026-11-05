@@ -48,7 +48,7 @@ and test results live elsewhere.
 ## Do
 
 - Run the gate before committing:
-  `python -m compileall -q vb6decompile tests`, then `pytest -q` (no target
+  `python -m compileall -q vb6decompiler tests`, then `pytest -q` (no target
   variables exported), then `vb6d mask . --dry-run`.
 - When you have a real VB6 build, run the target-variable suite as well: export
   `VB6D_TARGET`, `VB6D_LISTINGS`, `VB6D_FRM_DIR`, `VB6D_REPORT_DIR` and run

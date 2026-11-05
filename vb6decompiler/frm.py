@@ -62,7 +62,7 @@ see ``docs/RULES.md`` §2: a parser ships with its coverage, not with "OK"):
   flagged ``complete=False`` with the cut line number, not silently repaired.
 
 Re-run those numbers with :func:`scan_directory` / :func:`format_summary`, or
-``python -m vb6decompile.frm <directory>``.
+``python -m vb6decompiler.frm <directory>``.
 """
 from __future__ import annotations
 
@@ -1088,7 +1088,7 @@ def format_summary(summary: dict[str, object]) -> str:
 
 
 def main(argv: list[str] | None = None) -> int:
-    """``python -m vb6decompile.frm <dir> [--recursive] [--json]`` — coverage report."""
+    """``python -m vb6decompiler.frm <dir> [--recursive] [--json]`` — coverage report."""
     import argparse
     import json
 

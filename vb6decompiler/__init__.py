@@ -1,4 +1,4 @@
-"""vb6decompile — evidence-based recovery of native-compiled VB6 programs.
+"""vb6decompiler — evidence-based recovery of native-compiled VB6 programs.
 
 Every module here has one job and prints what it could not do. The package never
 guesses a name, a string or a table: it either reads it from the file or it says

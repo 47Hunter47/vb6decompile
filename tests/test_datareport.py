@@ -19,7 +19,7 @@ import struct
 
 import pytest
 
-from vb6decompile import datareport as dr
+from vb6decompiler import datareport as dr
 
 
 # ---------------------------------------------------------------------------

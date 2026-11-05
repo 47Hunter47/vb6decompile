@@ -1,4 +1,4 @@
-"""Tests for :mod:`vb6decompile.blob`.
+"""Tests for :mod:`vb6decompiler.blob`.
 
 Two layers:
 
@@ -19,7 +19,7 @@ import struct
 
 import pytest
 
-from vb6decompile import blob
+from vb6decompiler import blob
 
 
 # --------------------------------------------------------------------------

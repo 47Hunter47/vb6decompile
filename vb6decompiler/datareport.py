@@ -20,7 +20,7 @@ It does **not** recover:
 Measured grammar (413 designs, 8 report DLLs of one shipping VB6 install)
 ------------------------------------------------------------------------
 1. **Strings are ``len32 + UTF-16LE``.** The form-blob grammar
-   (``len16 + CP1254 + 0x00``, see :mod:`vb6decompile.blob`) finds *nothing* here;
+   (``len16 + CP1254 + 0x00``, see :mod:`vb6decompiler.blob`) finds *nothing* here;
    feeding a DataReport blob to that reader yields zero records.
 2. **A string whose character count is odd is followed by a ``00 00`` alignment
    pad** (measured on 15,032 of 15,120 odd-length events). The scanner must advance
@@ -89,8 +89,8 @@ Measured grammar (413 designs, 8 report DLLs of one shipping VB6 install)
 
 Usage::
 
-    python -m vb6decompile.datareport --validate "C:/path/to/report/dlls"
-    python -m vb6decompile.datareport --csv out.csv rptOrders.dll
+    python -m vb6decompiler.datareport --validate "C:/path/to/report/dlls"
+    python -m vb6decompiler.datareport --csv out.csv rptOrders.dll
 """
 
 from __future__ import annotations

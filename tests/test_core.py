@@ -11,7 +11,7 @@ import struct
 
 import pytest
 
-from vb6decompile import literals, mask, sqlstitch
+from vb6decompiler import literals, mask, sqlstitch
 
 
 # --------------------------------------------------------------------------- literals

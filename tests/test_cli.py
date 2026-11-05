@@ -16,7 +16,7 @@ import os
 
 import pytest
 
-from vb6decompile import cli
+from vb6decompiler import cli
 
 FIXTURES = os.path.join(os.path.dirname(__file__), "fixtures")
 

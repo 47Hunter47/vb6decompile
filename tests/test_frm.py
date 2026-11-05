@@ -1,7 +1,7 @@
 """Tests for the ``.frm`` design-block parser.
 
 Every test here states the measured reason it exists: the five traps in
-``vb6decompile/frm.py``'s module docstring each get a test that fails if someone
+``vb6decompiler/frm.py``'s module docstring each get a test that fails if someone
 "simplifies" the parser back into a wrong-but-plausible shape.
 
 The synthetic fixtures in ``tests/fixtures/`` are hand-written, not captured from
@@ -18,7 +18,7 @@ import os
 
 import pytest
 
-from vb6decompile import frm
+from vb6decompiler import frm
 
 FIXTURES = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fixtures")
 FRM_DIR = os.environ.get("VB6D_FRM_DIR")

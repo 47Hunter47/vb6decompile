@@ -89,7 +89,7 @@ filled in.
 
 Usage::
 
-    from vb6decompile import blob
+    from vb6decompiler import blob
 
     forms = blob.extract_forms("APP.EXE")
     report = blob.validate("APP.EXE", "path/to/decompile")
@@ -1026,7 +1026,7 @@ def validate(exe_path: str, frm_dir: str | None = None) -> ValidationReport:
 
 
 def main(argv: list[str] | None = None) -> int:
-    """Command line entry: ``python -m vb6decompile.blob EXE [--frm DIR]``.
+    """Command line entry: ``python -m vb6decompiler.blob EXE [--frm DIR]``.
 
     ``--validate`` and ``--frm-dir`` are accepted as aliases so this module and
     ``vb6d blob`` take the same flags; a tool with two spellings for one thing is a

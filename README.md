@@ -1,4 +1,4 @@
-# vb6decompile
+# vb6decompiler
 
 Recovering what a native-compiled VB6 program actually does, with evidence.
 
@@ -90,7 +90,7 @@ counts rather than vendor percentages.
 ## Install
 
 ```
-git clone <this repo> && cd vb6decompile
+git clone <this repo> && cd vb6decompiler
 python -m pip install -e .
 ```
 
@@ -208,7 +208,7 @@ Things that cost days to learn:
 ## Layout
 
 ```
-vb6decompile/     the library (one module per stage, stdlib only except pefile/capstone)
+vb6decompiler/     the library (one module per stage, stdlib only except pefile/capstone)
 scripts/          standalone helpers (semi_laa.py: set the LAA bit on a copy;
                   frx_icon.py: extract the leading ICON record of a .frx;
                   win32_gui_probe.py: drive vendor GUI tools headlessly when the
